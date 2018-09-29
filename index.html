@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Basic Financial Statements</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.1/css/bulma.min.css">
+    <script defer src="https://use.fontawesome.com/releases/v5.1.0/js/all.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+</head>
+
+<body>
+    <section class="section" id="app">
+        <div class="container">
+            <div class="columns">
+                <div class="column">
+                    <h3 class="subtitle is-3 has-text-centered">BALANCE SHEET</h3>
+                </div>
+            </div>
+            </br>
+            <div class="columns">
+
+                <div class="column is-6">
+                    <h4 class="subtitle is-4 has-text-centered">ASSETS <a class="button is-white" v-on:click="addSection('assets')">+</a></h4>
+                    <hr>
+                    <sect v-for="asset in assets" v-bind:type="'assets'" v-bind:record="asset" v-on:remove-section="removeSection"
+                        v-on:add-item="addItem" v-on:remove-item="removeItem"></sect>
+                </div>
+                <div class="column is-6">
+                    <h4 class="subtitle is-4 has-text-centered">LIABILITIES <a class="button is-white" v-on:click="addSection('liabilities')">+</a></h4>
+                    <hr>
+                    <sect v-for="liability in liabilities" v-bind:type="'liabilities'" v-bind:record="liability"
+                        v-on:remove-section="removeSection" v-on:add-item="addItem" v-on:remove-item="removeItem"></sect>
+
+                    </br>
+                    </br>    
+                    <h4 class="subtitle is-4 has-text-centered">SHAREHOLDERS' EQUITY <a class="button is-white" v-on:click="addSection('equities')">+</a></h4>
+                    <hr>
+                    <sect v-for="equity in equities" v-bind:type="'equities'" v-bind:record="equity"
+                        v-on:remove-section="removeSection" v-on:add-item="addItem" v-on:remove-item="removeItem"></sect>
+                </div>
+            </div>
+            <div class="columns">
+                <div class="column is-6">
+                    <h4 class="subtitle is-4 is-primary">Total Assets = <span class="tag is-large">$ {{ totalAssets}}</span></h4>
+                </div>
+                <div class="column is-6">
+                    <h4 class="subtitle is-4 is-primary">Total Liabilities & Equity= <span class="tag is-large">$ {{ totalLiabsEquis}}</span></h4>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <script>
+        Vue.component('sect', {
+            props: ['record', 'type'],
+            template: `
+            <article class="message is-white">
+                <div class="message-header">
+                    <h5 class="subtitle is-5" v-show="!record.isEdit" v-on:click="record.isEdit=!record.isEdit">
+                        {{record.title}}
+                        <button v-show="!record.isEdit" class="delete is-small" aria-label="delete" v-on:click="$emit('remove-section',record,type)"></button>
+                    </h5>
+                    <input v-show="record.isEdit" v-on:blur="record.title?record.isEdit=!record.isEdit:record.isEdit=true"
+                        class="input is-small" type="text" v-model="record.title">
+                </div>
+                <a class="button is-white" v-on:click="$emit('add-item',record,type)">+</a>
+                <div class="message-body ">
+                    <table class="table is-bordered">
+                        <tr v-for="val in record.vals">
+                            <td>
+                                <p v-show="!val.isEdit" v-on:click="val.isEdit=!val.isEdit">
+                                    {{val.key}}
+                                </p>
+                                <input v-show="val.isEdit" v-on:blur="val.key?val.isEdit=!val.isEdit:val.isEdit=true" class="input is-small"
+                                    type="text" v-model="val.key">
+                            </td>
+                            <td>
+                                <div class="field has-addons">
+                                    <div class="control">
+                                        <input class="input is-small is-white" type="text" v-model="val.value">
+                                    </div>
+                                    <div class="control">
+                                        &nbsp;
+                                        <a class="is-small delete" v-on:click="$emit('remove-item',record,val,type)">                                       
+                                        </a>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </article>
+            `
+        })
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                asset_tmp: '',
+                asset_tmp_grp: 1,
+                asset_tmp_item: 1,
+                liability_tmp: '',
+                liability_tmp_grp: 1,
+                liability_tmp_item: 1,
+                equity_tmp: '',
+                equity_tmp_grp: 1,
+                equity_tmp_item: 1,
+                assets: [
+                    {
+                        title: 'Current Assets',
+                        isEdit: false,
+                        vals: [
+                            { key: 'Cash', value: 0, isEdit: false },
+                            { key: 'Land', value: 0, isEdit: false }
+                        ]
+
+                    }
+                ],
+                liabilities: [
+                    {
+                        title: 'Current Liabilities',
+                        isEdit: false,
+                        vals: [
+                            { key: 'Notes Payable', value: 0, isEdit: false },
+                            { key: 'Accounts Payable', value: 0, isEdit: false }
+                        ]
+
+                    }
+                ],
+                equities: [
+                    {
+                        title: 'Shareholders Equity',
+                        isEdit: false,
+                        vals: [
+                            { key: 'Common Stock', value: 0, isEdit: false },
+                            { key: 'Retained Earnings', value: 0, isEdit: false }
+                        ]
+
+                    }
+                ]
+            },
+            computed: {
+                totalAssets: function () {
+                    var total = 0;
+                    var tmps = this.assets;
+                    _.each(tmps, function (tmp, i) {
+                        _.each(tmp.vals, function (val, j) {
+                            total = total + parseInt(val.value ? val.value : 0);
+
+                        })
+                    })
+                    return total;
+                },
+                totalLiabsEquis: function () {
+                    var totalLiabs = 0;
+                    var totalEquis = 0;
+
+                    var liabs = this.liabilities;
+                    var equis = this.equities;
+
+                    _.each(liabs, function (tmp, i) {
+                        _.each(tmp.vals, function (val, j) {
+                            totalLiabs += parseInt(val.value ? val.value : 0);
+                        })
+                    })
+
+                    _.each(equis, function (tmp, i) {
+                        _.each(tmp.vals, function (val, j) {
+                            totalEquis += parseInt(val.value ? val.value : 0);
+                        })
+                    })
+                    return totalLiabs + totalEquis;
+                }
+            },
+            methods: {
+                addSection: function (type) {
+                    var temp = null;
+                    if (type == 'assets') {
+                        temp = {
+                            title: 'Assets ' + this.asset_tmp_grp,
+                            isEdit: false,
+                            vals: []
+                        };
+                        this.asset_tmp = '';
+                        this.assets.push(temp);
+                        this.asset_tmp_grp += 1;
+                    }
+                    else if (type == 'liabilities') {
+                        temp = {
+                            title: 'Liabilities ' + this.liability_tmp_grp,
+                            isEdit: false,
+                            vals: []
+                        };
+                        this.liability_tmp = '';
+                        this.liabilities.push(temp);
+                        this.liability_tmp_grp += 1;
+                    }
+                    else if (type == 'equities') {
+                        temp = {
+                            title: 'Equities ' + this.liability_tmp_grp,
+                            isEdit: false,
+                            vals: []
+                        };
+                        this.equity_tmp = '';
+                        this.equities.push(temp);
+                        this.equity_tmp_grp += 1;
+
+                    }
+                },
+                removeSection: function (tmp, type) {
+                    var newArray = null;
+                    if (type == 'assets') {
+                        newArray = _.reject(this.assets, function (asset) {
+                            return asset.title == tmp.title;
+                        })
+                        this.assets = newArray;
+                        this.asset_tmp_grp -= 1;
+
+                    }
+                    else if (type == 'liabilities') {
+                        newArray = _.reject(this.liabilities, function (liability) {
+                            return liability.title == tmp.title;
+                        })
+                        this.liabilities = newArray;
+                        this.liability_tmp_grp -= 1;
+
+                    }
+                    else if (type == 'equities') {
+                        newArray = _.reject(this.equities, function (equity) {
+                            return equity.title == tmp.title;
+                        })
+                        this.equities = newArray;
+                        this.equity_tmp_grp -= 1;
+
+                    }
+                },
+                addItem: function (data, type) {
+                    if (type == 'assets') {
+                        _.each(this.assets, function (value, key) {
+                            if (value.title == data.title) {
+                                value.vals.push({ key: 'Asset ' + this.app.asset_tmp_item, value: 0, isEdit: false });
+                            }
+                        })
+                        data.tmp = '';
+                        this.asset_tmp_item += 1;
+                    }
+                    else if (type == 'liabilities') {
+                        _.each(this.liabilities, function (value, key) {
+                            if (value.title == data.title) {
+                                value.vals.push({ key: 'Liability ' + this.app.liability_tmp_item, value: 0, isEdit: false });
+                            }
+                        })
+                        data.tmp = '';
+                        this.liability_tmp_item += 1;
+
+                    }
+                    else if (type == 'equities') {
+                        _.each(this.equities, function (value, key) {
+                            if (value.title == data.title) {
+                                value.vals.push({ key: 'Equity ' + this.app.equity_tmp_item, value: 0, isEdit: false });
+                            }
+                        })
+                        data.tmp = '';
+                        this.equity_tmp_item += 1;
+                    }
+
+                },
+                removeItem: function (data, item, type) {
+
+                    if (type == 'assets') {
+                        _.each(this.assets, function (value, key) {
+                            if (value.title == data.title) {
+                                var newArray = _.reject(value.vals, function (v) {
+                                    return v.key == item.key;
+                                })
+                                value.vals = newArray;
+                            }
+                        })
+                    }
+                    else if (type == 'liabilities') {
+                        _.each(this.liabilities, function (value, key) {
+                            if (value.title == data.title) {
+                                var newArray = _.reject(value.vals, function (v) {
+                                    return v.key == item.key;
+                                })
+                                value.vals = newArray;
+                            }
+                        })
+                    }
+                    else if (type == 'equities') {
+                        _.each(this.equities, function (value, key) {
+                            if (value.title == data.title) {
+                                var newArray = _.reject(value.vals, function (v) {
+                                    return v.key == item.key;
+                                })
+                                value.vals = newArray;
+                            }
+                        })
+                    }
+                }
+            }
+        })
+    </script>
+
+</body>
+
+</html>
